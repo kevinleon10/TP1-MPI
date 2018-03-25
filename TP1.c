@@ -22,7 +22,7 @@ int main(int argc,char **argv)
         do {
             printf("Type n, which is the dimension of the matrix\n");
             scanf("%d", &n); //It is the length of each row and the number of rows
-        } while(n<numProcess | n%numProcess!=0);
+        } while(n<numProcess || n%numProcess!=0);
 
 		int m[n*n], v[n]; //It is the n*n matrix(array) and the n array
         generatesMatrix(m, n*n);
@@ -37,7 +37,7 @@ int main(int argc,char **argv)
 }
 
 
-// Method wich generates the long matrix
+// Method which generates the long vector
 void generatesMatrix(int m[], int n){
     int i;
     for (i = 0; i < n; i++) {
@@ -46,6 +46,7 @@ void generatesMatrix(int m[], int n){
     }
 }
 
+// Method which generates the short vector
 void generatesVector(int v[], int n){
     int i;
     for (i = 0; i < n; i++) {
