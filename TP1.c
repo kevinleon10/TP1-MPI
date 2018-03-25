@@ -21,18 +21,17 @@ int main(int argc, char **argv) {
 
     if (myId == 0) {
         //It controls the user cannot enter wrong data
-        printf("Type n, which is the dimension of the matrix\n");
+        printf("\nType n, which is the dimension of the matrix.\n");
         scanf("%d", &n); //It is the length of each row and the number of rows
         while (n < numProcess || n % numProcess != 0) {
-            printf("The n must be multiple of the number of processes!!\n");
-            printf("Type n, which is the dimension of the matrix\n");
+            printf("\nThe n must be multiple of the number of processes!!\n");
+            printf("Type n, which is the dimension of the matrix.\n");
             scanf("%d", &n); //It is the length of each row and the number of rows
         }
         int m[n * n], v[n]; //It is the n*n matrix(array) and the n array
         generatesMatrix(m, n * n);
         generatesVector(v, n);
-        printMatrix(m, n, 'M');
-        printVector(v, n, 'V');
+
     } else {
 
     }
@@ -66,7 +65,7 @@ void printMatrix(int m[], int n, char name) {
             printf(" %d ", m[i + j]);
         }
     }
-    printf("\n\n");
+    printf("\n");
 }
 
 // Method which generates a vector
@@ -85,5 +84,5 @@ void printVector(int v[], int n, char name) {
     for (i = 0; i < n; i++) {
         printf(" %d ", v[i]);
     }
-    printf("\n\n");
+    printf("\n");
 }
