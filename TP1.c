@@ -59,6 +59,9 @@ void printMatrix(int m[], int n, char name) {
     printf("\n-> The Matrix %c", name);
     for (i = 0; i < n; i++) {
         printf("\nRow %d:", i + 1);
+        if (i < 9) {
+            printf(" ");
+        }
         for (j = 0; j < n; j++) {
             printf(" %d ", m[i + j]);
         }
