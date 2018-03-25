@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
         generatesVector(v, n);
         printMatrix(m, n, 'M');
         printVector(v, n, 'V');
-        printVector(v, n, 'V');
     } else {
 
     }
