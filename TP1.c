@@ -9,11 +9,11 @@ int main(int argc, char **argv) {
 
     // They include the methods
     void generatesMatrix(int m[], int n);
-    char* getMatrix(int m[], int n, char name[1]);
+    char *getMatrix(int m[], int n, char name[1]);
     void generatesVector(int v[], int n);
-    char* getVector(int v[], int n, char name[1]);
-    void printResults(int m[], int v, int q[], int p[], int b[]);
-    void writeResults(int m[], int v, int q[], int p[], int b[]);
+    char *getVector(int v[], int n, char name[1]);
+    void postResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time, double processTime);
+    void writeResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time, double processTime);
 
     MPI_Init(&argc, &argv); //It starts MPI
 
@@ -33,8 +33,9 @@ int main(int argc, char **argv) {
         int m[n * n], v[n]; //It is the n*n matrix(array) and the n array
         generatesMatrix(m, n * n);
         generatesVector(v, n);
-        // printf(getMatrix(m, n, "M"));
-        getVector(v, n, "V");
+
+        postResults(m, v, m, v, m, n, numProcess, 0, 0, 0);
+
     } else {
 
     }
@@ -54,10 +55,10 @@ void generatesMatrix(int m[], int n) {
 }
 
 // Method which print a matrix
-char* getMatrix(int m[], int n, char name[1]) {
+char *getMatrix(int m[], int n, char name[1]) {
     int i, j, counter;
-    char* matrix = malloc(1000);
-    strcpy(matrix, "\n-> The Matrix ");
+    char *matrix = malloc(1000);
+    strcpy(matrix, "\n-> Matrix ");
     strcat(matrix, name);
     for (i = 0; i < n; i++) {
         strcat(matrix, "\nRow ");
@@ -92,10 +93,10 @@ void generatesVector(int v[], int n) {
 }
 
 // Method which print a vector
-char* getVector(int v[], int n, char name[1]) {
+char *getVector(int v[], int n, char name[1]) {
     int i;
-    char* vector = malloc(300);
-    strcpy(vector, "\n-> The Vector ");
+    char *vector = malloc(300);
+    strcpy(vector, "\n-> Vector ");
     strcat(vector, name);
     strcat(vector, "\n");
     //printf("\n-> The Vector %c\n", name);
@@ -107,19 +108,44 @@ char* getVector(int v[], int n, char name[1]) {
         // printf(" %d ", v[i]);
     }
     strcat(vector, "\n");
-    printf(vector);
     return vector;
     //printf("\n");
 }
 
-void printResults(int m[], int v, int q[], int p[], int b[]){
-
+// Method which generates a new File, with the respective results
+void writeResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time,double processTime) {
+    FILE *f = fopen("results.txt", "w");
+    char *text = malloc(2000);
+    strcpy(text, getMatrix(m,n,"M"));
+    fprintf(f, "", text);
+    strcpy(text, getMatrix(v,n,"V"));
+    fprintf(f, "", text);
+    strcpy(text, getMatrix(q,n,"Q"));
+    fprintf(f, "", text);
+    strcpy(text, getMatrix(p,n,"P"));
+    fprintf(f, "", text);
+    strcpy(text, getMatrix(b,n,"B"));
+    fprintf(f, "", text);
 }
 
-// Method which generates a new File, with the final results
-void writeResults(int m[], int v, int q[], int p[], int b[]) {
-    FILE *f = fopen("file.txt", "w");
-    const char *text = "";
-    fprintf(f, "RESULTS %s\n\n", text);
+// Method which post the Results, in console or in a file
+void postResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double totalTime, double processTime) {
+    printf("\nRESULTS\n\n");
+    printf("->Value of n: %d\n", n);
+    printf("->Total of processes: %d\n", numProcess);
+    printf("->Total of prime numbers in M (tp): %d\n", tp);
+    printf("->Total time: %d\n", totalTime);
+    printf("->Total time, without the times to write results: %d\n", processTime);
+    if (n <= 100) {
+        printf(getMatrix(m, n, "M"));
+        printf(getVector(v, n, "V"));
+        printf(getVector(q, n, "Q"));
+        printf(getVector(p, n, "P"));
+        printf(getMatrix(b, n, "B"));
+    } else {
+        writeResults(m, v, q, p, b, n, numProcess, tp, totalTime, processTime);
+    }
 }
+
+
 
