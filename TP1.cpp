@@ -1,5 +1,5 @@
 /*
-// Created by Kevin León & Renato Mainieri on 25/03/2018.
+// Created by Kevin Le�n & Renato Mainieri on 25/03/2018.
 */
 #include <mpi.h>
 #include <stdio.h>
@@ -18,22 +18,24 @@ class VectorManager {
 public:
     void generatesVector(int V[], int n, bool rank);
 
-    void postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time, double processTime);
+    void postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
+                     double processTime);
 
     int productPoint(int row[], int column[], int n_bar);
 
     string getMatrix(int M[], int n, string name);
 
     string getVector(int V[], int n, string name);
-	
-	void generatesSendCounts(int sendCounts[], int n_bar, int n);
-	
-	void generatesSendDespl(int despl[], int n_bar, int n);
+
+    void generatesSendCounts(int sendCounts[], int n_bar, int n);
+
+    void generatesSendDespl(int despl[], int n_bar, int n);
 
 private:
 
 
-    void writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time, double processTime);
+    void writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
+                      double processTime);
 };
 
 // Method which generates a matrix
@@ -41,19 +43,20 @@ void VectorManager::generatesVector(int V[], int n, bool rank) {
     int i;
     srand(time(NULL));
     for (i = 0; i < n; i++) {
-		if(rank){
-			V[i] = rand() % 10;
-		} else{
-			V[i] = rand() & 5;
-		}
-        
+        if (rank) {
+            V[i] = rand() % 10;
+        } else {
+            V[i] = rand() & 5;
+        }
+
     }
 
 }
 
 // Method which post the Results, in console or in a file
 void
-VectorManager::postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double totalTime, double processTime) {
+VectorManager::postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp,
+                           double totalTime, double processTime) {
     cout << "\nRESULTS\n" << endl;
     cout << "-> Value of n: " << n << endl;
     cout << "-> Total of processes: " << numProcesses << endl;
@@ -117,7 +120,9 @@ string VectorManager::getMatrix(int M[], int n, string name) {
 }
 
 // Method which generates a new File, with the respective results
-void VectorManager::writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time, double processTime) {
+void
+VectorManager::writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
+                            double processTime) {
     string input;
     input = "RESULTS";
     ofstream out("results.txt");
@@ -140,30 +145,30 @@ void VectorManager::writeResults(int M[], int V[], int Q[], int P[], int B[], in
     out.close();
 }
 
-void VectorManager::generatesSendCounts(int sendCounts[], int n, int numProcesses){
-	int n_bar = n / numProcesses;
-	for(int i=0; i<numProcesses; ++i){
-		if(i==0 || i==numProcesses-1){
-			sendCounts[i] = (n_bar+1) * n;
-		} else {
-			sendCounts[i] = (n_bar+2) * n;
-		}
-	}
+void VectorManager::generatesSendCounts(int sendCounts[], int n, int numProcesses) {
+    int n_bar = n / numProcesses;
+    for (int i = 0; i < numProcesses; ++i) {
+        if (i == 0 || i == numProcesses - 1) {
+            sendCounts[i] = (n_bar + 1) * n;
+        } else {
+            sendCounts[i] = (n_bar + 2) * n;
+        }
+    }
 }
 
-void VectorManager::generatesSendDespl(int sendDespl[], int n, int numProcesses){
-	int n_bar = n / numProcesses;
-	for(int i=0; i<numProcesses; ++i){
-		if (i==0){
-			sendDespl[i] = 0;
-		} else if(i==1){
-			sendDespl[i] = (n_bar-1) * n;
-		} else if(i==numProcesses-1){
-			sendDespl[i] = (n-(n_bar+1)) * n;
-		} else{
-			sendDespl[i] = (i*n_bar-1) * n;
-		}
-	}
+void VectorManager::generatesSendDespl(int sendDespl[], int n, int numProcesses) {
+    int n_bar = n / numProcesses;
+    for (int i = 0; i < numProcesses; ++i) {
+        if (i == 0) {
+            sendDespl[i] = 0;
+        } else if (i == 1) {
+            sendDespl[i] = (n_bar - 1) * n;
+        } else if (i == numProcesses - 1) {
+            sendDespl[i] = (n - (n_bar + 1)) * n;
+        } else {
+            sendDespl[i] = (i * n_bar - 1) * n;
+        }
+    }
 }
 
 int main(int argc, char **argv) {
@@ -176,8 +181,8 @@ int main(int argc, char **argv) {
     int V[MAX], Q[MAX], P[MAX];
     int localQ[MAX];
     int localV[MAX];
-	int despl[MAX];
-	int sendCounts[MAX];
+    int despl[MAX];
+    int sendCounts[MAX];
 
     VectorManager vectorManager;
 
@@ -199,11 +204,11 @@ int main(int argc, char **argv) {
         //int m[n * n], v[n]; //It is the n*n matrix(array) and the n array
         vectorManager.generatesVector(M, n * n, true); // It assign values to m
         vectorManager.generatesVector(V, n, false); // It assign values to v
-		
-		vectorManager.generatesSendCounts(sendCounts, n, numProcesses);
-		vectorManager.generatesSendDespl(despl, n, numProcesses);
-		cout << vectorManager.getVector(sendCounts, numProcesses, "sendCounts") << endl;
-		cout << vectorManager.getVector(despl, numProcesses, "sendDespl") << endl;
+
+        vectorManager.generatesSendCounts(sendCounts, n, numProcesses);
+        vectorManager.generatesSendDespl(despl, n, numProcesses);
+        //cout << vectorManager.getVector(sendCounts, numProcesses, "sendCounts") << endl;
+        //cout << vectorManager.getVector(despl, numProcesses, "sendDespl") << endl;
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of n value
@@ -211,22 +216,25 @@ int main(int argc, char **argv) {
 
     n_bar = n / numProcesses;
 
-	MPI_Scatter(Q, n_bar, MPI_INT, localQ, n_bar, MPI_INT, 0, MPI_COMM_WORLD); // It sends to each process a part of Q vector for the multiplication
-	
-	//MPI_ScatterV(M, );
-	
-	/*for(int i=0; i<n_bar; ++i){
-		vectorManager.productPoint()
-	}*/
-		
+    MPI_Scatter(Q, n_bar, MPI_INT, localQ, n_bar, MPI_INT, 0,
+                MPI_COMM_WORLD); // It sends to each process a part of Q vector for the multiplication
+
+
+    //MPI_ScatterV(M, );
+
+    /*for(int i=0; i<n_bar; ++i){
+        vectorManager.productPoint()
+    }*/
+
     //for (int i = 0; i < n; i++)
     // cout << "Proceso " << myId << ", posicion " << i+1 << " con valor de: " << V[i] << endl;
 
-	MPI_Gather(localQ, n_bar, MPI_INT, Q, n_bar, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(localQ, n_bar, MPI_INT, Q, n_bar, MPI_INT, 0, MPI_COMM_WORLD);
 
-    MPI_Reduce(P, P, n, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD); // It completes the P vector, adding to each column the quantity of prime numbers per column
-    MPI_Reduce(&tp, &tp, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD); // It completes tp, adding the quantity of primes numbers.
-
+    MPI_Reduce(P, P, n, MPI_INT, MPI_SUM, 0,
+               MPI_COMM_WORLD); // It completes the P vector, adding to each column the quantity of prime numbers per column
+    MPI_Reduce(&tp, &tp, 1, MPI_INT, MPI_SUM, 0,
+               MPI_COMM_WORLD); // It completes tp, adding the quantity of primes numbers.
 
     if (myId == 0) {
         //vectorManager.postResults();
