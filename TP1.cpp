@@ -38,7 +38,7 @@ private:
                       double processTime);
 };
 
-// Method which generates a matrix
+// Method which generates a vector
 void VectorManager::generatesVector(int V[], int n, bool rank) {
     int i;
     srand(time(NULL));
@@ -46,11 +46,9 @@ void VectorManager::generatesVector(int V[], int n, bool rank) {
         if (rank) {
             V[i] = rand() % 10;
         } else {
-            V[i] = rand() & 5;
+            V[i] = rand() % 6;
         }
-
     }
-
 }
 
 // Method which post the Results, in console or in a file
@@ -113,7 +111,7 @@ string VectorManager::getMatrix(int M[], int n, string name) {
         }
         for (j = 0; j < n; j++) {
             matrix += " ";
-            matrix += to_string(static_cast<long long int>(M[i + j]));
+            matrix += to_string(static_cast<long long int>(M[(i*n) + j]));
         }
     }
     return matrix;
@@ -207,8 +205,10 @@ int main(int argc, char **argv) {
 
         vectorManager.generatesSendCounts(sendCounts, n, numProcesses);
         vectorManager.generatesSendDespl(despl, n, numProcesses);
-        //cout << vectorManager.getVector(sendCounts, numProcesses, "sendCounts") << endl;
-        //cout << vectorManager.getVector(despl, numProcesses, "sendDespl") << endl;
+
+
+        cout << vectorManager.getMatrix(M, n, "M") << endl;
+        cout << vectorManager.getVector(V, n, "V") << endl;
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of n value
