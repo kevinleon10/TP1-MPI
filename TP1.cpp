@@ -81,19 +81,19 @@ VectorManager::writeResults(int m[], int v[], int q[], int p[], int b[], int n, 
     ofstream out("results.txt");
     out << input;
     out << endl;
-    input = getMatrix(m,n,"M");
+    input = getMatrix(m, n, "M");
     out << input;
     out << endl;
-    input = getVector(v,n,"V");
+    input = getVector(v, n, "V");
     out << input;
     out << endl;
-    input = getVector(q,n,"Q");
+    input = getVector(q, n, "Q");
     out << input;
     out << endl;
-    input = getVector(p,n,"P");
+    input = getVector(p, n, "P");
     out << input;
     out << endl;
-    input = getMatrix(b,n,"B");
+    input = getMatrix(b, n, "B");
     out << input;
     out.close();
 }
@@ -105,9 +105,9 @@ VectorManager::postResults(int m[], int v[], int q[], int p[], int b[], int n, i
     cout << "\nRESULTS\n" << endl;
     cout << "-> Value of n: " << to_string(static_cast<long long int>(n)) << endl;
     cout << "-> Total of processes: " << to_string(static_cast<long long int>(numProcess)) << endl;
-    cout << "->Total of prime numbers in M (tp): " << to_string(static_cast<long long int>(tp)) << endl;
+    cout << "-> Total of prime numbers in M (tp): " << to_string(static_cast<long long int>(tp)) << endl;
     cout << "-> Total time: " << to_string(static_cast<long long int>(totalTime)) << endl;
-    cout << "-> Total time, without the times to write results: " << to_string(static_cast<long long int>(totalTime))
+    cout << "-> Total time, without the times to write results: " << to_string(static_cast<long long int>(processTime))
          << endl;
     if (n <= 100) {
         cout << getMatrix(m, n, "M") << endl;
@@ -115,6 +115,7 @@ VectorManager::postResults(int m[], int v[], int q[], int p[], int b[], int n, i
         cout << getVector(q, n, "Q") << endl;
         cout << getVector(p, n, "P") << endl;
         cout << getMatrix(b, n, "B") << endl;
+        cout << endl;
     } else {
         writeResults(m, v, q, p, b, n, numProcess, tp, totalTime, processTime);
     }
