@@ -194,7 +194,7 @@ int main(int argc, char **argv) {
 
     if (myId == 0) {
         //It controls the user cannot enter wrong data
-        cout << "Type n, which is the dimension of the matrix" << endl;
+        cout << "\nType n, which is the dimension of the matrix" << endl;
         cin >> n; //It is the length of each row and the number of rows
         while (n < numProcesses || n % numProcesses != 0) {
             cout << "\nThe n must be multiple of the number of processes!!" << endl;
