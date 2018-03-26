@@ -35,7 +35,7 @@ private:
 };
 
 // Method which generates a matrix
-void VectorManager::generatesVector(int *V, int n) {
+void VectorManager::generatesVector(int V[], int n) {
     int i;
     srand(time(NULL));
     for (i = 0; i < n; i++) {
@@ -139,10 +139,10 @@ VectorManager::writeResults(int M[], int V[], int Q[], int P[], int B[], int n, 
 
 
 int main(int argc, char **argv) {
-    int numProcess, n, myId, tp;
+    int numProcess, n, myId, tp, localTp;
     int n_bar;        /*  Se calculara como  n/p, es decir es el numero de
                            elementos que le corresponde a cada proceso de cada vector */
-    double startTime, endTotalTime, endProcessTime;
+    double startTime, endTotalTime, endProcessTime; // MPI_Wtime()
     int M[MAX * MAX];
     int localM[MAX * MAX]; //  Aca recibe cada proceso la parte de M que le corresponde
     int V[MAX], Q[MAX], P[MAX];
@@ -172,17 +172,19 @@ int main(int argc, char **argv) {
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // Se hace un broadcast del valor de n
-    MPI_Bcast(&V, n, MPI_INT, 0, MPI_COMM_WORLD); // Se hace un broadcast del valor de V
+    MPI_Bcast(V, n, MPI_INT, 0, MPI_COMM_WORLD); // Se hace un broadcast del valor de V
+
     n_bar = n / numProcess;
 
     //for (int i = 0; i < n; i++)
     // cout << "Proceso " << myId << ", posicion " << i+1 << " con valor de: " << V[i] << endl;
 
 
+    MPI_Reduce(P, P, n, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD); // Completa el vector P, sumando todos los resultados
+    MPI_Reduce(&tp, &tp, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD); // Suma el total de tp, sumando todos los resultados
 
 
     if (myId == 0) {
-        cout << vectorManager.getVector(V, n, "V") << endl;
         //vectorManager.postResults();
     }
 
