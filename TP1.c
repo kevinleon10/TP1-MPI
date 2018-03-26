@@ -116,16 +116,19 @@ char *getVector(int v[], int n, char name[1]) {
 void writeResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time,double processTime) {
     FILE *f = fopen("results.txt", "w");
     char *text = malloc(2000);
+    strcpy(text, "RESULTS\n");
+    fprintf(f, "%s", text);
     strcpy(text, getMatrix(m,n,"M"));
-    fprintf(f, "", text);
-    strcpy(text, getMatrix(v,n,"V"));
-    fprintf(f, "", text);
-    strcpy(text, getMatrix(q,n,"Q"));
-    fprintf(f, "", text);
-    strcpy(text, getMatrix(p,n,"P"));
-    fprintf(f, "", text);
+    fprintf(f, "%s", text);
+    strcpy(text, getVector(v,n,"V"));
+    fprintf(f, "%s", text);
+    strcpy(text, getVector(q,n,"Q"));
+    fprintf(f, "%s", text);
+    strcpy(text, getVector(p,n,"P"));
+    fprintf(f, "%s", text);
     strcpy(text, getMatrix(b,n,"B"));
-    fprintf(f, "", text);
+    fprintf(f, "%s", text);
+    fclose(f);
 }
 
 // Method which post the Results, in console or in a file
@@ -146,6 +149,3 @@ void postResults(int m[], int v[], int q[], int p[], int b[], int n, int numProc
         writeResults(m, v, q, p, b, n, numProcess, tp, totalTime, processTime);
     }
 }
-
-
-
