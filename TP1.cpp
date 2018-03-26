@@ -10,49 +10,88 @@
 #include <string>
 #include <iostream>
 
+#define MAX 1000
+
 using namespace std;
 
 class VectorManager {
 public:
-    void generatesVector(int v[], int n);
+    void generatesVector(int V[], int n);
 
-    void postResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time,
+    void postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcess, int tp, double time,
                      double processTime);
+
+    int productPoint(int row[], int column[], int n_bar);
+
+    string getMatrix(int M[], int n, string name);
+
+    string getVector(int V[], int n, string name);
 
 private:
 
-    string getVector(int v[], int n, string name);
 
-    string getMatrix(int m[], int n, string name);
-
-    void writeResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time,
+    void writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcess, int tp, double time,
                       double processTime);
 };
 
 // Method which generates a matrix
-void VectorManager::generatesVector(int *v, int n) {
+void VectorManager::generatesVector(int *V, int n) {
     int i;
     srand(time(NULL));
     for (i = 0; i < n; i++) {
-        v[i] = rand() % 10;
+        V[i] = rand() % 10;
     }
+
+}
+
+// Method which post the Results, in console or in a file
+void
+VectorManager::postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcess, int tp, double totalTime,
+                           double processTime) {
+    cout << "\nRESULTS\n" << endl;
+    cout << "-> Value of n: " << to_string(static_cast<long long int>(n)) << endl;
+    cout << "-> Total of processes: " << to_string(static_cast<long long int>(numProcess)) << endl;
+    cout << "-> Total of prime numbers in M (tp): " << to_string(static_cast<long long int>(tp)) << endl;
+    cout << "-> Total time: " << to_string(static_cast<long long int>(totalTime)) << endl;
+    cout << "-> Total time, without the times to write results: " << to_string(static_cast<long long int>(processTime))
+         << endl;
+    if (n <= 100) {
+        cout << getMatrix(M, n, "M") << endl;
+        cout << getVector(V, n, "V") << endl;
+        cout << getVector(Q, n, "Q") << endl;
+        cout << getVector(P, n, "P") << endl;
+        cout << getMatrix(B, n, "B") << endl;
+        cout << endl;
+    } else {
+        writeResults(M, V, Q, P, B, n, numProcess, tp, totalTime, processTime);
+    }
+
+}
+
+// Method which return a product point of two vectors
+int VectorManager::productPoint(int row[], int column[], int n_bar) {
+    int result = 0;
+    for (int i = 0; i < n_bar; i++) {
+        result = result+ row[i] * column[i];
+    }
+    return result;
 }
 
 // Method which print a vector
-string VectorManager::getVector(int v[], int n, string name) {
+string VectorManager::getVector(int V[], int n, string name) {
     string vector = "";
     vector += "\n-> VECTOR ";
     vector += name;
     vector += "\n";
     for (int i = 0; i < n; i++) {
         vector += " ";
-        vector += to_string(static_cast<long long int>(v[i]));
+        vector += to_string(static_cast<long long int>(V[i]));
     }
     return vector;
 }
 
 // Method which print a matrix
-string VectorManager::getMatrix(int m[], int n, string name) {
+string VectorManager::getMatrix(int M[], int n, string name) {
     int i, j;
     string matrix = "";
     matrix += "\n-> MATRIX ";
@@ -66,7 +105,7 @@ string VectorManager::getMatrix(int m[], int n, string name) {
         }
         for (j = 0; j < n; j++) {
             matrix += " ";
-            matrix += to_string(static_cast<long long int>(m[i + j]));
+            matrix += to_string(static_cast<long long int>(M[i + j]));
         }
     }
     return matrix;
@@ -74,58 +113,42 @@ string VectorManager::getMatrix(int m[], int n, string name) {
 
 // Method which generates a new File, with the respective results
 void
-VectorManager::writeResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double time,
+VectorManager::writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcess, int tp, double time,
                             double processTime) {
     string input;
     input = "RESULTS";
     ofstream out("results.txt");
     out << input;
     out << endl;
-    input = getMatrix(m, n, "M");
+    input = getMatrix(M, n, "M");
     out << input;
     out << endl;
-    input = getVector(v, n, "V");
+    input = getVector(V, n, "V");
     out << input;
     out << endl;
-    input = getVector(q, n, "Q");
+    input = getVector(Q, n, "Q");
     out << input;
     out << endl;
-    input = getVector(p, n, "P");
+    input = getVector(P, n, "P");
     out << input;
     out << endl;
-    input = getMatrix(b, n, "B");
+    input = getMatrix(B, n, "B");
     out << input;
     out.close();
 }
 
-// Method which post the Results, in console or in a file
-void
-VectorManager::postResults(int m[], int v[], int q[], int p[], int b[], int n, int numProcess, int tp, double totalTime,
-                           double processTime) {
-    cout << "\nRESULTS\n" << endl;
-    cout << "-> Value of n: " << to_string(static_cast<long long int>(n)) << endl;
-    cout << "-> Total of processes: " << to_string(static_cast<long long int>(numProcess)) << endl;
-    cout << "-> Total of prime numbers in M (tp): " << to_string(static_cast<long long int>(tp)) << endl;
-    cout << "-> Total time: " << to_string(static_cast<long long int>(totalTime)) << endl;
-    cout << "-> Total time, without the times to write results: " << to_string(static_cast<long long int>(processTime))
-         << endl;
-    if (n <= 100) {
-        cout << getMatrix(m, n, "M") << endl;
-        cout << getVector(v, n, "V") << endl;
-        cout << getVector(q, n, "Q") << endl;
-        cout << getVector(p, n, "P") << endl;
-        cout << getMatrix(b, n, "B") << endl;
-        cout << endl;
-    } else {
-        writeResults(m, v, q, p, b, n, numProcess, tp, totalTime, processTime);
-    }
-
-}
-
 
 int main(int argc, char **argv) {
-    int numProcess, n, myId;
-    double startTime, endTime;
+    int numProcess, n, myId, tp;
+    int n_bar;        /*  Se calculara como  n/p, es decir es el numero de
+                           elementos que le corresponde a cada proceso de cada vector */
+    double startTime, endTotalTime, endProcessTime;
+    int M[MAX * MAX];
+    int localM[MAX * MAX]; //  Aca recibe cada proceso la parte de M que le corresponde
+    int V[MAX], Q[MAX], P[MAX];
+    int localQ[MAX];
+    int localV[MAX];
+
     VectorManager vectorManager;
 
     MPI_Init(&argc, &argv); //It starts MPI
@@ -143,14 +166,24 @@ int main(int argc, char **argv) {
             printf("Type n, which is the dimension of the matrix.\n");
             scanf("%d", &n); //It is the length of each row and the number of rows
         }
-        int m[n * n], v[n]; //It is the n*n matrix(array) and the n array
-        vectorManager.generatesVector(m, n * n); // It assign values to m
-        vectorManager.generatesVector(v, n); // It assign values to v
-        vectorManager.postResults(m, v, v, v, m, n, 1, 2, 3, 4);
+        //int m[n * n], v[n]; //It is the n*n matrix(array) and the n array
+        vectorManager.generatesVector(M, n * n); // It assign values to m
+        vectorManager.generatesVector(V, n); // It assign values to v
+    }
+
+    MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // Se hace un broadcast del valor de n
+    MPI_Bcast(&V, n, MPI_INT, 0, MPI_COMM_WORLD); // Se hace un broadcast del valor de V
+    n_bar = n / numProcess;
+
+    //for (int i = 0; i < n; i++)
+    // cout << "Proceso " << myId << ", posicion " << i+1 << " con valor de: " << V[i] << endl;
 
 
-    } else {
 
+
+    if (myId == 0) {
+        cout << vectorManager.getVector(V, n, "V") << endl;
+        //vectorManager.postResults();
     }
 
     MPI_Finalize(); //It ends MPI

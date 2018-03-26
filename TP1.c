@@ -3,9 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
 int main(int argc, char **argv) {
     int numProcess, n, myId;
     double startTime, endTime;
+
 
     // They include the methods
     void generatesMatrix(int m[], int n);
