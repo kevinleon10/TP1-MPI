@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
     MPI_Scatter(Q, n_bar, MPI_INT, localQ, n_bar, MPI_INT, 0,
                 MPI_COMM_WORLD); // It sends to each process a part of Q vector for the multiplication
 
-   // MPI_Scatterv(M, sendcounts, displs, MPI_INT, local_x, 100, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatterv(M, sendcounts, displs, MPI_INT, local_x, 100, MPI_INT, 0, MPI_COMM_WORLD);
     //MPI_ScatterV(M, );
 
     /*for(int i=0; i<n_bar; ++i){
