@@ -21,18 +21,19 @@ public:
     void postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
                      double processTime);
 
-    int productPoint(int row[], int column[], int n_bar);
-
     string getMatrix(int M[], int n, string name);
 
     string getVector(int V[], int n, string name);
 
     void generatesSendCounts(int sendCounts[], int n_bar, int n);
 
-    void generatesSendDespl(int displs[], int n_bar, int n);
+    void generatesSendDisplacements(int displs[], int n_bar, int n);
+	
+	void generateResults(int localM[], int V[], int localQ[], int P[], int tp, int n, int n_bar, bool firstProcess);
 
 private:
 
+	bool isPrime(int value);
 
     void writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
                       double processTime);
@@ -72,15 +73,6 @@ VectorManager::postResults(int M[], int V[], int Q[], int P[], int B[], int n, i
         writeResults(M, V, Q, P, B, n, numProcesses, tp, totalTime, processTime);
     }
 
-}
-
-// Method which returns a product point of two vectors
-int VectorManager::productPoint(int row[], int column[], int n_bar) {
-    int result = 0;
-    for (int i = 0; i < n_bar; i++) {
-        result += row[i] * column[i];
-    }
-    return result;
 }
 
 // Method which prints a vector
@@ -154,32 +146,64 @@ void VectorManager::generatesSendCounts(int sendCounts[], int n, int numProcesse
     }
 }
 
-void VectorManager::generatesSendDespl(int sendDespl[], int n, int numProcesses) {
+void VectorManager::generatesSendDisplacements(int sendDisplacements[], int n, int numProcesses) {
     int n_bar = n / numProcesses;
     for (int i = 0; i < numProcesses; ++i) {
         if (i == 0) {
-            sendDespl[i] = 0;
-        } else if (i == 1) {
-            sendDespl[i] = (n_bar - 1) * n;
+            sendDisplacements[i] = 0;
         } else if (i == numProcesses - 1) {
-            sendDespl[i] = (n - (n_bar + 1)) * n;
+            sendDisplacements[i] = (n - (n_bar + 1)) * n;
         } else {
-            sendDespl[i] = (i * n_bar - 1) * n;
+            sendDisplacements[i] = (i * n_bar - 1) * n;
         }
     }
 }
 
+void VectorManager::generateResults(int localM[], int V[], int localQ[], int P[], int tp, int n, int n_bar, bool firstProcess) {
+	int i = 0;
+	int counter = 0;
+	int tempNBar = 0;
+	tempNBar += n_bar;
+	if(!firstProcess){
+		++i;
+		tempNBar += n_bar + 1;
+	}
+	for(i; i<tempNBar; ++i){
+		int column = 0;
+		for(int j=0; j<n; ++j){
+			if(isPrime(localM[i*n+j])){
+				++P[j];
+				++tp;
+			}
+			column += localM[i*n+j] * V[j];
+		}
+		localQ[counter] = column;
+		++counter;
+	}
+	cout << getVector(P, n, "P") << endl;
+	cout << tp << endl;
+}
+
+bool VectorManager::isPrime(int value){
+	bool isPrime = false;
+	if(value==2 || value==3 || value==5 || value==7){
+		isPrime = true;
+	}
+	return isPrime;
+}
+
+
 int main(int argc, char **argv) {
-    int numProcesses, n, myId, tp, localTp;
+    int numProcesses, n, myId, tp;
     int n_bar;        /*  Se calculara como  n/p, es decir es el numero de
                            elementos que le corresponde a cada proceso de cada vector */
     double startTime, endTotalTime, endProcessTime; // MPI_Wtime()
-    int M[MAX * MAX];
-    int localM[MAX * MAX]; //  Aca recibe cada proceso la parte de M que le corresponde
+    int M[MAX], B[MAX];
+    int localM[MAX], localB[MAX]; //  Aca recibe cada proceso la parte de M que le corresponde
+	int rowsInM;
     int V[MAX], Q[MAX], P[MAX];
-    int localQ[MAX];
-    int localV[MAX];
-    int displs[MAX];
+    int localQ[MAX]; // It stores the product point in each process
+    int displacements[MAX];
     int sendCounts[MAX];
 
     VectorManager vectorManager;
@@ -204,40 +228,54 @@ int main(int argc, char **argv) {
         vectorManager.generatesVector(V, n, false); // It assign values to v
 
         vectorManager.generatesSendCounts(sendCounts, n, numProcesses);
-        vectorManager.generatesSendDespl(displs, n, numProcesses);
-
-
-        cout << vectorManager.getMatrix(M, n, "M") << endl;
-        cout << vectorManager.getVector(V, n, "V") << endl;
+        vectorManager.generatesSendDisplacements(displacements, n, numProcesses);
+		
     }
 
+	tp = 0;
+	
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of n value
     MPI_Bcast(V, n, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of v value
 
+	for(int reni=0; reni<n; ++reni)
+		P[reni] = 0;
+	
     n_bar = n / numProcesses;
 
     MPI_Scatter(Q, n_bar, MPI_INT, localQ, n_bar, MPI_INT, 0,
                 MPI_COMM_WORLD); // It sends to each process a part of Q vector for the multiplication
 
-    MPI_Scatterv(M, sendcounts, displs, MPI_INT, local_x, 100, MPI_INT, 0, MPI_COMM_WORLD);
-    //MPI_ScatterV(M, );
-
-    /*for(int i=0; i<n_bar; ++i){
-        vectorManager.productPoint()
-    }*/
-
-    //for (int i = 0; i < n; i++)
-    // cout << "Proceso " << myId << ", posicion " << i+1 << " con valor de: " << V[i] << endl;
-
+    MPI_Scatterv(M, sendCounts, displacements, MPI_INT, localM, (n_bar+2)*n, MPI_INT, 0, MPI_COMM_WORLD);
+   
+    // Process of getting Q
+	bool firstProcess = false;
+	if(myId==0 || myId==numProcesses-1){
+		if(myId==0) firstProcess = true;
+		rowsInM = n_bar+1;
+	} else {
+		rowsInM = n_bar+2;
+	}
+	cout << "soy el puto " << myId;
+	vectorManager.generateResults(localM, V, localQ, P, tp, n, n_bar, firstProcess);
+	cout << endl;
+	
     MPI_Gather(localQ, n_bar, MPI_INT, Q, n_bar, MPI_INT, 0, MPI_COMM_WORLD);
+	
+	//MPI_Gather(localB, n_bar*n, MPI_INT, B, n_bar*n, MPI_INT, 0, MPI_COMM_WORLD);
 
     MPI_Reduce(P, P, n, MPI_INT, MPI_SUM, 0,
                MPI_COMM_WORLD); // It completes the P vector, adding to each column the quantity of prime numbers per column
     MPI_Reduce(&tp, &tp, 1, MPI_INT, MPI_SUM, 0,
                MPI_COMM_WORLD); // It completes tp, adding the quantity of primes numbers.
-
+	
     if (myId == 0) {
-        //vectorManager.postResults();
+		cout << vectorManager.getVector(sendCounts, numProcesses, "S") << endl;
+        cout << vectorManager.getVector(displacements, numProcesses, "D") << endl;
+		cout << vectorManager.getMatrix(M, n, "M") << endl;
+		cout << vectorManager.getVector(V, n, "V") << endl;
+		cout << vectorManager.getVector(Q, n, "Q") << endl;
+		cout << vectorManager.getVector(P, n, "P") << endl;
+		cout << "tp: " << tp << endl;
     }
 
     MPI_Finalize(); //It ends MPI
