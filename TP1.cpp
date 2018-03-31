@@ -29,7 +29,7 @@ public:
 
     void generatesSendCounts(int sendCounts[], int n_bar, int n);
 
-    void generatesSendDespl(int despl[], int n_bar, int n);
+    void generatesSendDespl(int displs[], int n_bar, int n);
 
 private:
 
@@ -111,7 +111,7 @@ string VectorManager::getMatrix(int M[], int n, string name) {
         }
         for (j = 0; j < n; j++) {
             matrix += " ";
-            matrix += to_string(static_cast<long long int>(M[(i*n) + j]));
+            matrix += to_string(static_cast<long long int>(M[(i * n) + j]));
         }
     }
     return matrix;
@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
     int V[MAX], Q[MAX], P[MAX];
     int localQ[MAX];
     int localV[MAX];
-    int despl[MAX];
+    int displs[MAX];
     int sendCounts[MAX];
 
     VectorManager vectorManager;
@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
         vectorManager.generatesVector(V, n, false); // It assign values to v
 
         vectorManager.generatesSendCounts(sendCounts, n, numProcesses);
-        vectorManager.generatesSendDespl(despl, n, numProcesses);
+        vectorManager.generatesSendDespl(displs, n, numProcesses);
 
 
         cout << vectorManager.getMatrix(M, n, "M") << endl;
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
     MPI_Scatter(Q, n_bar, MPI_INT, localQ, n_bar, MPI_INT, 0,
                 MPI_COMM_WORLD); // It sends to each process a part of Q vector for the multiplication
 
-
+   // MPI_Scatterv(M, sendcounts, displs, MPI_INT, local_x, 100, MPI_INT, 0, MPI_COMM_WORLD);
     //MPI_ScatterV(M, );
 
     /*for(int i=0; i<n_bar; ++i){
