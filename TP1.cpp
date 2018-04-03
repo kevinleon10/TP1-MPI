@@ -29,7 +29,7 @@ public:
     void generatesSendDisplacements(int displs[], int n_bar, int n);
 
     void generateResults(int localM[], int V[], int localQ[], int P[], int *tp, int n, int n_bar, bool firstProcess);
-    
+
     bool isPrime(int value);
 
 private:
@@ -160,7 +160,7 @@ void VectorManager::generatesSendDisplacements(int sendDisplacements[], int n, i
 
 void VectorManager::generateResults(int localM[], int V[], int localQ[], int P[], int *tp, int n, int n_bar,
                                     bool firstProcess) {
-    
+
 }
 
 bool VectorManager::isPrime(int value) {
@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myId); //MPI stores in myId the id of the current process
 
     if (myId == 0) {
-    	
+
         //It controls the user cannot enter wrong data
         cout << "\nType n, which is the dimension of the matrix" << endl;
         cin >> n; //It is the length of each row and the number of rows
@@ -197,42 +197,51 @@ int main(int argc, char **argv) {
             cout << "Type n, which is the dimension of the matrix." << endl;
             cin >> n; //It is the length of each row and the number of rows
         }
-        
-        M = new (nothrow) int[n*n];
-        B = new (nothrow) int[n*n];
-		Q = new (nothrow) int[n];
-		V = new (nothrow) int [n];
-		displacements = new (nothrow) int [numProcesses];
-		sendCounts = new (nothrow) int[numProcesses];
-		
-        if( M == NULL || B == NULL || Q == NULL || V == NULL || displacements == NULL || sendCounts == NULL ){
-        	cout << "No se ha encontrado memoria disponible" << endl;
-        	return 0;
-		}
-        
+        M = new(nothrow) int[n * n];
+        B = new(nothrow) int[n * n];
+        Q = new(nothrow) int[n];
+        V = new(nothrow) int[n];
+        displacements = new(nothrow) int[numProcesses];
+        sendCounts = new(nothrow) int[numProcesses];
+
+        if (M == NULL || B == NULL || Q == NULL || V == NULL || displacements == NULL || sendCounts == NULL) {
+            cout << "No se ha encontrado memoria disponible" << endl;
+            return 0;
+        }
+
         //int m[n * n], v[n]; //It is the n*n matrix(array) and the n array
         vectorManager.generatesVector(M, n * n, true); // It assign values to m
         vectorManager.generatesVector(V, n, false); // It assign values to v
 
         vectorManager.generatesSendCounts(sendCounts, n, numProcesses);
         vectorManager.generatesSendDisplacements(displacements, n, numProcesses);
-		
+
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of n value
+
+    if (myId > 0) {
+        V = new(nothrow) int[n];
+    }
+
     MPI_Bcast(V, n, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of v value
 
     n_bar = n / numProcesses;
-    
-    P = new (nothrow) int[n];
-    localM = new (nothrow) int[n*(n_bar+2)];
-    localB = new (nothrow) int[n*(n_bar)];
-	localQ = new (nothrow) int[n_bar];
-	
-	if( P == NULL || localM == NULL || localB == NULL || localQ == NULL ){
+
+    P = new(nothrow) int[n];
+    localM = new(nothrow) int[n * (n_bar + 2)];
+    localB = new(nothrow) int[n * (n_bar)];
+    localQ = new(nothrow) int[n_bar];
+
+    if (P == NULL || localM == NULL || localB == NULL || localQ == NULL || V == NULL) {
         cout << "No se ha encontrado memoria disponible" << endl;
         return 0;
-	}
+    }
+
+    for (int k = 0; k < n; ++k) {
+        P[k] = 0;
+    }
+
 
     MPI_Scatter(Q, n_bar, MPI_INT, localQ, n_bar, MPI_INT, 0,
                 MPI_COMM_WORLD); // It sends to each process a part of Q vector for the multiplication
@@ -240,14 +249,14 @@ int main(int argc, char **argv) {
     MPI_Scatterv(M, sendCounts, displacements, MPI_INT, localM, (n_bar + 2) * n, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Process of getting Q
-	tp = 0;
+    tp = 0;
     i = 0;
     counter = 0;
     tempNBar = 0;
     if (myId > 0) {
         ++i;
     }
-    tempNBar += (n_bar+i);
+    tempNBar += (n_bar + i);
     for (i; i < tempNBar; ++i) {
         int column = 0;
         for (int j = 0; j < n; ++j) {
@@ -278,9 +287,11 @@ int main(int argc, char **argv) {
         cout << vectorManager.getVector(Q, n, "Q") << endl;
         cout << vectorManager.getVector(P, n, "FINAL P") << endl;
         cout << "tp: " << tp << endl;
+
+        delete[] M, B, Q, V, sendCounts, displacements;
     }
-	
-	delete[] M, B, localM, localB, V, Q, P, localQ, displacements, sendCounts;
+
+    delete[] P, localB, localM, localQ;
 
     MPI_Finalize(); //It ends MPI
     return 0;
