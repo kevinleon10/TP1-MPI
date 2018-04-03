@@ -15,27 +15,28 @@ using namespace std;
 
 class VectorManager {
 public:
+
     void generatesVector(int V[], int n, bool rank);
 
     void postResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
                      double processTime);
 
-    string getMatrix(int M[], int n, string name);
-
-    string getVector(int V[], int n, string name);
-
     void generatesSendCounts(int sendCounts[], int n_bar, int n);
 
     void generatesSendDisplacements(int displs[], int n_bar, int n);
 
-    void generateResults(int localM[], int V[], int localQ[], int P[], int *tp, int n, int n_bar, bool firstProcess);
-
     bool isPrime(int value);
+	
+	int obtainNewValue(int M[], int position, int n);
 
 private:
 
     void writeResults(int M[], int V[], int Q[], int P[], int B[], int n, int numProcesses, int tp, double time,
-                      double processTime);
+                      double processTime);				  
+
+    string getMatrix(int M[], int n, string name);
+
+    string getVector(int V[], int n, string name);
 };
 
 // Method which generates a vector
@@ -158,11 +159,6 @@ void VectorManager::generatesSendDisplacements(int sendDisplacements[], int n, i
     }
 }
 
-void VectorManager::generateResults(int localM[], int V[], int localQ[], int P[], int *tp, int n, int n_bar,
-                                    bool firstProcess) {
-
-}
-
 bool VectorManager::isPrime(int value) {
     bool isPrime = false;
     if (value == 2 || value == 3 || value == 5 || value == 7) {
@@ -171,9 +167,27 @@ bool VectorManager::isPrime(int value) {
     return isPrime;
 }
 
+int VectorManager::obtainNewValue(int M[], int position, int n){
+	int result = 0;
+	result += M[position];  // M[i,j]
+	if ((position%n)>0) { //M[i,j-1], If is not in a left border
+		result += M[position-1];
+	}
+	if (position>=n) {  //M[i-1,j], If is not in the top border
+		result += M[position-n];
+ 	}
+	if (position%n!=(n-1)) {  //M[i,j+1], If is not in the right border
+		result += M[position+1];
+ 	}
+	if (((n*n)-position)>n) {  //M[i+1,j], If is not in the down border
+		result += M[position+n];
+ 	}
+	return result;
+}
+
 
 int main(int argc, char **argv) {
-    int numProcesses, n, myId, tp, counter, tempNBar, i;
+    int numProcesses, n, myId, tp, qCounter, bCounter, tempNBar, i;
     int n_bar;        /*  Se calculara como  n/p, es decir es el numero de
                            elementos que le corresponde a cada proceso de cada vector */
     double startTime, endTotalTime, endProcessTime; // MPI_Wtime()
@@ -251,7 +265,8 @@ int main(int argc, char **argv) {
     // Process of getting Q
     tp = 0;
     i = 0;
-    counter = 0;
+    qCounter = 0;
+	bCounter = 0;
     tempNBar = 0;
     if (myId > 0) {
         ++i;
@@ -265,14 +280,17 @@ int main(int argc, char **argv) {
                 ++tp;
             }
             column += localM[i * n + j] * V[j];
+			localB[bCounter] = vectorManager.obtainNewValue(localM, i*n+j, n);
+			++bCounter;
         }
-        localQ[counter] = column;
-        ++counter;
+        localQ[qCounter] = column;
+        ++qCounter;
+		
     }
 
     MPI_Gather(localQ, n_bar, MPI_INT, Q, n_bar, MPI_INT, 0, MPI_COMM_WORLD);
 
-    //MPI_Gather(localB, n_bar*n, MPI_INT, B, n_bar*n, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(localB, n_bar*n, MPI_INT, B, n_bar*n, MPI_INT, 0, MPI_COMM_WORLD);
 
     MPI_Reduce(P, P, n, MPI_INT, MPI_SUM, 0,
                MPI_COMM_WORLD); // It completes the P vector, adding to each column the quantity of prime numbers per column
@@ -280,13 +298,7 @@ int main(int argc, char **argv) {
                MPI_COMM_WORLD); // It completes tp, adding the quantity of primes numbers.
 
     if (myId == 0) {
-        //cout << vectorManager.getVector(sendCounts, numProcesses, "S") << endl;
-        //cout << vectorManager.getVector(displacements, numProcesses, "D") << endl;
-        cout << vectorManager.getMatrix(M, n, "M") << endl;
-        cout << vectorManager.getVector(V, n, "V") << endl;
-        cout << vectorManager.getVector(Q, n, "Q") << endl;
-        cout << vectorManager.getVector(P, n, "FINAL P") << endl;
-        cout << "tp: " << tp << endl;
+        vectorManager.postResults(M,V, Q, P, B, n, numProcesses, tp, 0, 0);
 
         delete[] M, B, Q, V, sendCounts, displacements;
     }
