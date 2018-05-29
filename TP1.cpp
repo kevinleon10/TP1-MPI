@@ -246,7 +246,11 @@ int main(int argc, char **argv) {
 
     if (myId > 0) {
         V = new(nothrow) int[n];
-    }
+        if (V == NULL) {
+            cout << "No available memory found!!" << endl;
+            return 0;
+        }
+    }    
 
     MPI_Bcast(V, n, MPI_INT, 0, MPI_COMM_WORLD); // It does a broadcast of v value
 
@@ -257,7 +261,7 @@ int main(int argc, char **argv) {
     localB = new(nothrow) int[n * (n_bar)];
     localQ = new(nothrow) int[n_bar];
 
-    if (P == NULL || localM == NULL || localB == NULL || localQ == NULL || V == NULL) {
+    if (P == NULL || localM == NULL || localB == NULL || localQ == NULL) {
         cout << "No available memory found!!" << endl;
         return 0;
     }
